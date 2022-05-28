@@ -1,7 +1,7 @@
 import json
 import logging
 
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 
@@ -33,17 +33,19 @@ class Sensor():
         return self._api_url_tmpl.format(sensor_id=self.id)
 
     @property
-    def pm2_5_atm(self) -> List[float]:
+    def pm2_5_atm(self) -> Optional[float]:
         if self._data_dict is not None:
-
-            results = [float(r['pm2_5_atm']) for r in self._data_dict['results']]
+            results = float(self._data_dict['sensor']['pm2.5_atm'])
             return results
 
-        return []
+        return None
 
     @property
-    def us_epa_pm2_4_aqi(self) -> List[float]:
-        return [calculate_aqi(v) for v in self.pm2_5_atm]
+    def us_epa_pm2_4_aqi(self) -> Optional[float]:
+        if self.pm2_5_atm is None:
+            return None
+        else:
+            return calculate_aqi(self.pm2_5_atm)
 
 
 def remap(value: float, low1: float, high1: float, low2: float, high2: float) -> float:

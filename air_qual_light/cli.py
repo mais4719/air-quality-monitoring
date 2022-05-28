@@ -63,6 +63,9 @@ def main(config_file: str, log_level: str):
     log.info(f'Loaded config file(s): {config_file}')
     config, sensors = read_config_file(config_file)
 
+    api_key = config['generic']['api_key']
+    log.info(f'Loaded API_KEY: {api_key[:8]}...')
+
     # Load active time
     start_time, end_time = config['generic']['active_time'].strip().split('-')
     start_time, end_time = time(int(start_time)), time(int(end_time))
@@ -82,9 +85,13 @@ def main(config_file: str, log_level: str):
         try:
 
             if is_time_between(start_time, end_time):
-                update_sensor_data(sensors)
+
+                update_sensor_data(sensors, api_key)
+                log.debug(f'Sensors: {sensors}')
+
                 pm2_5_aqi = calculate_concencus_aqi([s.us_epa_pm2_4_aqi for s in sensors])
                 log.debug(f'Got a new pm2.5 AQI value: {pm2_5_aqi}')
+
                 led.set_light(pm2_5_aqi)
             else:
                 log.debug(f'Outside active time (start: {start_time}, end: {end_time}), lights off.')

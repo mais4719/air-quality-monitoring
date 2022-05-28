@@ -4,8 +4,27 @@ from configparser import ConfigParser
 from time import sleep
 from typing import Tuple
 
-import board
-import neopixel
+from air_qual_light import RASPBERRY_PI_HARDWARE
+
+if RASPBERRY_PI_HARDWARE:
+    # Will throw an exception on a none Raspberry Pi hardware
+    import board
+    from neopixel import NeoPixel, GRB
+else:
+    class DummyNeopixel():
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def __setitem__(self, index, val):
+            pass
+
+        def show(self):
+            pass
+
+        def fill(self, *args, **kwargs):
+            pass
+
+    NeoPixel, GRB = DummyNeopixel, "GRB"
 
 
 log = logging.getLogger()
@@ -13,7 +32,7 @@ log = logging.getLogger()
 
 class Led():
 
-    def __init__(self, config: ConfigParser, color_order: str = neopixel.GRB):
+    def __init__(self, config: ConfigParser, color_order: str = GRB):
 
         # Setup Neopixel
         config = config['neopixel']
@@ -21,8 +40,8 @@ class Led():
         self.number_of_leds = int(config['number_of_leds'])
         self.use_half = config.getboolean('use_half')
 
-        self.pixels = neopixel.NeoPixel(
-            getattr(board, config['board_connection']),
+        self.pixels = NeoPixel(
+            getattr(board, config['board_connection']) if RASPBERRY_PI_HARDWARE else None,
             self.number_of_leds,
             brightness=float(config['light_intensity']),
             auto_write=False,
