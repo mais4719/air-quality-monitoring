@@ -4,6 +4,9 @@ api_url_tmpl = https://api.purpleair.com/v1/sensors/{sensor_id}
 # Numbers of seconds between updates
 update_frequency = 300
 
+# Sensor data time-to-live in minutes
+sensor_ttl_min = 10
+
 # Start and end time on whole hour
 # format: [start_hour]-[end_hour]
 active_time = 8-22

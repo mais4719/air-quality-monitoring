@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=61.0", "setuptools_scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "air_qual_light"
+dynamic = ["version"]
+description = "Updates led light after a PurpleAir monitor value."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    {name = "mais4719"}
+]
+keywords = ["air_qual_light"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering"
+]
+dependencies = [
+    "setuptools_scm",
+    "aiohttp",
+    "Click",
+    "numpy",
+    "rpi_ws281x",
+    "adafruit-circuitpython-neopixel",
+    "fastapi",
+    "uvicorn[standard]"
+]
+
+[project.scripts]
+airqual = "air_qual_light.cli:main"
+
+[tool.setuptools]
+zip-safe = false
+include-package-data = true
+packages = ["air_qual_light"]
+
+[tool.setuptools.package-data]
+air_qual_light = ["config/*.conf"]
+
+[tool.setuptools_scm]

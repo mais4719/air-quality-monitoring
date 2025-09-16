@@ -4,49 +4,29 @@ from configparser import ConfigParser
 from time import sleep
 from typing import Tuple
 
-from air_qual_light import RASPBERRY_PI_HARDWARE
-
-if RASPBERRY_PI_HARDWARE:
-    # Will throw an exception on a none Raspberry Pi hardware
-    import board
-    from neopixel import NeoPixel, GRB
-else:
-    class DummyNeopixel():
-        def __init__(self, *args, **kwargs):
-            pass
-
-        def __setitem__(self, index, val):
-            pass
-
-        def show(self):
-            pass
-
-        def fill(self, *args, **kwargs):
-            pass
-
-    NeoPixel, GRB = DummyNeopixel, "GRB"
+from air_qual_light.hardware_abstraction import create_led_strip
 
 
 log = logging.getLogger()
 
 
 class Led():
+    """Represents a LED strip."""
+    def __init__(self, config: ConfigParser, color_order: str = 'GRB'):
+        """Initializes the LED strip with the given configuration and color order.
 
-    def __init__(self, config: ConfigParser, color_order: str = GRB):
+        Args:
+            config (ConfigParser): The configuration parser containing LED settings.
+            color_order (str): The color order for the LED strip (default is GRB).
 
-        # Setup Neopixel
-        config = config['neopixel']
+        """
+        # Setup Neopixel using hardware abstraction
+        neopixel_config = config['neopixel']
+        self.number_of_leds = int(neopixel_config['number_of_leds'])
+        self.use_half = neopixel_config.getboolean('use_half')
 
-        self.number_of_leds = int(config['number_of_leds'])
-        self.use_half = config.getboolean('use_half')
-
-        self.pixels = NeoPixel(
-            getattr(board, config['board_connection']) if RASPBERRY_PI_HARDWARE else None,
-            self.number_of_leds,
-            brightness=float(config['light_intensity']),
-            auto_write=False,
-            pixel_order=color_order
-        )
+        # Create LED strip using factory function
+        self.pixels = create_led_strip(config)
 
         # Load AQI color and levels
         self.levels = []
@@ -73,7 +53,7 @@ class Led():
                 self.set_rgb(level_rgb)
                 break
 
-    def set_rgb(self, rgb: Tuple[int]):
+    def set_rgb(self, rgb: Tuple[int, int, int]):
 
         log.debug(f'Update LED with RGB: {rgb}')
         for idx in range(self.number_of_leds):
@@ -86,11 +66,18 @@ class Led():
         self.pixels.show()
 
     def working_light(self, loops: int = 5):
+        """Display a working/loading animation on the LED strip.
 
+        Args:
+            loops: Number of animation cycles to run
+        """
         for _ in range(loops):
-            for i in range(16):
-                for idx in range(16):
-                    if idx % 8 == i:
+            # Calculate step size for animation based on actual number of LEDs
+            step_size = max(1, self.number_of_leds // 8)
+
+            for i in range(self.number_of_leds):
+                for idx in range(self.number_of_leds):
+                    if idx % step_size == i % step_size:
                         self.pixels[idx] = (100, 100, 100)
                     else:
                         self.pixels[idx] = (0, 0, 10)

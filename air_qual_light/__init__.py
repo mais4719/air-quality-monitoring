@@ -1,9 +1,9 @@
 import os
 
-# Allow developmnet on a non-rasberry pi hardware.
-RASPBERRY_PI_HARDWARE = os.getenv('RASPBERRY_PI_HARDWARE', True)
+# Allow developments on a non-raspberry pi hardware.
+RASPBERRY_PI_HARDWARE = str(os.getenv('RASPBERRY_PI_HARDWARE', 'TRUE'))
 if RASPBERRY_PI_HARDWARE is not True:
-    if RASPBERRY_PI_HARDWARE.upper() in ('TRUE', 'YES'):
+    if RASPBERRY_PI_HARDWARE.upper() in {'TRUE', 'YES', '1'}:
         RASPBERRY_PI_HARDWARE = True
     else:
         RASPBERRY_PI_HARDWARE = False
@@ -15,7 +15,9 @@ except (ImportError, LookupError):
     try:
         from pkg_resources import get_distribution, DistributionNotFound
         __version__ = version = get_distribution(__name__).version
-    except (ImportError, DistributionNotFound):
+    except ImportError:
+        raise ValueError('Cannot find version number from scm or pkg resources')
+    except DistributionNotFound:  # type: ignore
         raise ValueError('Cannot find version number from scm or pkg resources')
 
 base_version = '.'.join(version.split('.')[:3])
