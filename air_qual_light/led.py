@@ -20,17 +20,17 @@ class Led():
             color_order (str): The color order for the LED strip (default is GRB).
 
         """
+        # Create LED strip using factory function
+        self.pixels = create_led_strip(config)
+
         # Setup Neopixel using hardware abstraction
         neopixel_config = config['neopixel']
         self.number_of_leds = int(neopixel_config['number_of_leds'])
         self.use_half = neopixel_config.getboolean('use_half')
 
-        # Create LED strip using factory function
-        self.pixels = create_led_strip(config)
-
         # Load AQI color and levels
         self.levels = []
-        for k, v in config.items():
+        for k, v in neopixel_config.items():
             if k.startswith('level_'):
 
                 level_str = k[6:]
@@ -46,7 +46,12 @@ class Led():
         self.__do_odd = 0
 
     def set_light(self, pm2_5_aqi: float):
+        """Sets the LED light color based on the PM2.5 AQI level.
 
+        Args:
+            pm2_5_aqi (float): The PM2.5 AQI value to set the light color for.
+
+        """
         for level_th, level_str, level_rgb in self.levels:
             if pm2_5_aqi < level_th:
                 log.info(f'Setting new light level to: {level_str} for pm2.5 AQI: {pm2_5_aqi}')
@@ -54,7 +59,12 @@ class Led():
                 break
 
     def set_rgb(self, rgb: Tuple[int, int, int]):
+        """Sets the RGB color of the LED strip.
 
+        Args:
+            rgb (Tuple[int, int, int]): The RGB color to set.
+
+        """
         log.debug(f'Update LED with RGB: {rgb}')
         for idx in range(self.number_of_leds):
             if idx % 2 == 0 + self.__do_odd or not self.use_half:
@@ -70,6 +80,7 @@ class Led():
 
         Args:
             loops: Number of animation cycles to run
+
         """
         for _ in range(loops):
             # Calculate step size for animation based on actual number of LEDs
@@ -87,5 +98,6 @@ class Led():
         self.off()
 
     def off(self):
+        """Turns off the LED strip."""
         self.pixels.fill((0, 0, 0))
         self.pixels.show()
