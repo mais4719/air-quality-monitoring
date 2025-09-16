@@ -159,7 +159,3 @@ Options:
 ## License
 
 See LICENSE file for details.
-
-## Contributing
-
-Contributions welcome! Please read the contributing guidelines and submit pull requests.
